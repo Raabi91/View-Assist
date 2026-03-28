@@ -1,8 +1,8 @@
 blueprint:
-  name: View Assist - Alarms Reminders Timers WORK IN PROGRESS
+  name: View Assist - Alarms Reminders Timers
   description:
     Ask Assist to set an alarm, reminder, or timer  (View Assist alarmsreminderstimers
-    v 1.3.0-beta7)
+    v 1.3.0)
   domain: automation
   input:
     spokenlanguage:
@@ -12,7 +12,13 @@ blueprint:
       selector:
         language:
           languages:
+            - ca
+            - de
             - en
+            - es
+            - fr
+            - sr
+            - sr-Latn
           native_name: false
           no_sort: false
     alarmsound_path:
@@ -221,6 +227,28 @@ action:
         {% set mic_ent = state_attr(target_satellite_device, 'mic_device') %}
         {{ device_entities(device_id(mic_ent)) | select('match', '^switch\..*_alarm$') | first | default('') if mic_ent else '' }}
       translations:
+        ca:
+          responses:
+            no_active_timers: "No hi ha cap temporitzador actiu."
+            one_active_timer: "Hi ha un temporitzador actiu:"
+            multiple_active_timers: "Hi ha {count} temporitzadors actius:"
+            final_timer: "i {timer_expiry_speak}"
+            no_display: "Aquest dispositiu no té pantalla per mostrar els temporitzadors"
+            timer_cancel: "El teu {timer_info} s'ha cancel·lat"
+            named_timer_not_found: "No s'ha pogut trobar aquest temporitzador"
+            timer_not_found: "No s'ha pogut trobar {timer_info}"
+            time_left: "Et queda {time_left} al teu {timer_info}"
+        de:
+          responses:
+            no_active_timers: "Keine Timer aktiv"
+            one_active_timer: "Ein Timer aktiv:"
+            multiple_active_timers: "Es sind {count} Timer aktiv:"
+            final_timer: "und {timer_expiry_speak}"
+            no_display: "Dieses Gerät hat keine Anzeige zur Anzeiger deiner Timer"
+            timer_cancel: "Dein {timer_info} wurde abgebrochen"
+            named_timer_not_found: "Dieser Timer wurde nicht gefunden"
+            timer_not_found: "Der {timer_info} wurde nicht gefunden"
+            time_left: "Du hast {time_left} auf deinem {timer_info}"
         en:
           responses:
             no_active_timers: "There are no active timers."
@@ -232,6 +260,50 @@ action:
             named_timer_not_found: "That timer could not be found"
             timer_not_found: "The {timer_info} could not be found"
             time_left: "You have {time_left} on your {timer_info}"
+        es:
+          responses:
+            no_active_timers: "No hay temporizadores activos."
+            one_active_timer: "Hay un temporizador activo:"
+            multiple_active_timers: "Hay {count} temporizadores activos:"
+            final_timer: "y {timer_expiry_speak}"
+            no_display: "Este dispositivo no tiene pantalla para mostrar los temporizadores"
+            timer_cancel: "Tu {timer_info} ha sido cancelado"
+            named_timer_not_found: "No se ha podido encontrar ese temporizador"
+            timer_not_found: "No se ha podido encontrar {timer_info}"
+            time_left: "Te quedan {time_left} en tu {timer_info}"
+        fr:
+          responses:
+            no_active_timers: "Aucun minuteur en cours."
+            one_active_timer: "Il y a un minuteur en cours :"
+            multiple_active_timers: "Il y a {count} minuteurs en cours :"
+            final_timer: "et {timer_expiry_speak}"
+            no_display: "Cet appareil ne dispose pas d'écran permettant l'affichage des minuteurs"
+            timer_cancel: "Minuteur de {timer_info} annulé"
+            named_timer_not_found: "Ce minuteur est introuvable"
+            timer_not_found: "Le {timer_info} est introuvable"
+            time_left: "Il reste {time_left} sur votre minuteur de {timer_info}"
+        sr:
+          responses:
+            no_active_timers: "Нема активних тајмера."
+            one_active_timer: "Постоји један активан тајмер:"
+            multiple_active_timers: "Постоји {count} активних тајмера:"
+            final_timer: "и {timer_expiry_speak}"
+            no_display: "Овај уређај нема екран за приказ тајмера"
+            timer_cancel: "Ваш {timer_info} је отказан"
+            named_timer_not_found: "Тај тајмер није пронађен"
+            timer_not_found: "{timer_info} није пронађен"
+            time_left: "Имате {time_left} на вашем {timer_info}"
+        sr-Latn:
+          responses:
+            no_active_timers: "Nema aktivnih tajmera."
+            one_active_timer: "Postoji jedan aktivan tajmer:"
+            multiple_active_timers: "Postoji {count} aktivnih tajmera:"
+            final_timer: "i {timer_expiry_speak}"
+            no_display: "Ovaj uređaj nema ekran za prikaz tajmera"
+            timer_cancel: "Vaš {timer_info} je otkazan"
+            named_timer_not_found: "Taj tajmer nije pronađen"
+            timer_not_found: "{timer_info} nije pronađen"
+            time_left: "Imate {time_left} na vašem {timer_info}"
   - choose:
       - conditions:
           - condition: trigger
@@ -617,15 +689,15 @@ action:
                 {% endfor %}
                 {{ ns.found }}
               hold_mode_on_alarm_view: >
-                    {% set ns = namespace(found=[]) %}
-                    {% for e in all_display_entities %}
-                      {% set path = state_attr(e, 'current_path') or '' %}
-                      {% set mode = state_attr(e, 'mode') or '' %}
-                      {% if 'alarm' in path and mode == 'hold' %}
-                        {% set ns.found = ns.found + [e] %}
-                      {% endif %}
-                    {% endfor %}
-                    {{ ns.found }}                
+                {% set ns = namespace(found=[]) %}
+                {% for e in all_display_entities %}
+                  {% set path = state_attr(e, 'current_path') or '' %}
+                  {% set mode = state_attr(e, 'mode') or '' %}
+                  {% if 'alarm' in path and mode == 'hold' %}
+                    {% set ns.found = ns.found + [e] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.found }}
           - if:
               - condition: template
                 value_template: "{{ timer_count == 0 and contains_timer_icon | count > 0 }}"
